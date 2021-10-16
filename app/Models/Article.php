@@ -9,6 +9,11 @@ use Illuminate\Support\Facades\Storage;
 class Article extends Model
 {
     use HasFactory;
+    
+    protected $fillable = [
+        'caption',
+        'info',
+    ];
 
     public function attachment()
     {

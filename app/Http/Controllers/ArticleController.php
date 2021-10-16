@@ -5,6 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\Article;
 use Attribute;
 use Illuminate\Http\Request;
+use App\Http\Requests\ArticleRequest;
+use App\Models\Attachment;
+use Exception;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 
 class ArticleController extends Controller
 {
@@ -35,9 +40,40 @@ class ArticleController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(ArticleRequest $request)
     {
-        //
+        $article = new Article($request->all());
+        $article->user_id = 1;
+        $file = $request->file('file');
+
+        DB::beginTransaction();
+        try {
+            $article->save();
+
+            if (!$path = Storage::putFile('articles', $file)) {
+                throw new Exception('ファイルの保存に失敗しました');
+            }
+
+            $attachment = new Attachment([
+                'article_id' => $article->id,
+                'org_name' => $file->getClientOriginalName(),
+                'name' => basename($path),
+            ]);
+
+            $attachment->save();
+            DB::commit();
+        } catch (\Exception $e) {
+            if (!empty($path)) {
+                Storage::delete($path);
+            }
+            DB::rollBack();
+            return back()
+                ->withErrors($e->getMessage());
+        }
+
+        return redirect()
+            ->route('articles.index')
+            ->with(['flash_message' => '登録が完了しました']);
     }
 
     /**
@@ -59,7 +95,7 @@ class ArticleController extends Controller
      */
     public function edit(Article $article)
     {
-        //
+        return view('articles.edit', compact('article'));
     }
 
     /**
@@ -69,9 +105,20 @@ class ArticleController extends Controller
      * @param  \App\Models\Article  $article
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Article $article)
+    public function update(ArticleRequest $request, Article $article)
     {
-        //
+        $article->fill($request->all());
+
+        try {
+            $article->save();
+        } catch (\Exception $e) {
+            return back()
+                ->withErrors($e->getMessage());
+        }
+
+        return redirect()
+            ->route('articles.index')
+            ->with(['flash_message' => '更新が完了しました']);
     }
 
     /**
@@ -82,6 +129,25 @@ class ArticleController extends Controller
      */
     public function destroy(Article $article)
     {
-        //
+        $path = $article->image_path;
+        
+        DB::beginTransaction();
+        try {
+            
+            $article->delete();
+            $article->attachment()->delete();
+            if(!Storage::delete($path)){
+                throw new Exception('ファイルの削除に失敗しました');
+            }
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()
+                ->withErrors($e->getMessage());
+        }
+        return redirect()
+            ->route('articles.index')
+            ->with(['flash_message' => '削除しました']);
     }
 }
