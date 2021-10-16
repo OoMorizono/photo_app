@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Models\Article;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use League\CommonMark\Node\Block\Paragraph;
 
 class ArticleFactory extends Factory
 {
@@ -22,7 +23,10 @@ class ArticleFactory extends Factory
     public function definition()
     {
         return [
-            //
+            // fakerを使ってデータを生成
+            'caption' => $this->faker->word(),
+            'info' => $this->faker->paragraph(),
+            'user_id' => \App\Models\User::factory()->create(),
         ];
     }
 }

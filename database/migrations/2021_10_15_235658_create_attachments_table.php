@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateArticlesTable extends Migration
+class CreateAttachmentsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,11 +13,11 @@ class CreateArticlesTable extends Migration
      */
     public function up()
     {
-        Schema::create('articles', function (Blueprint $table) {
+        Schema::create('attachments', function (Blueprint $table) {
             $table->id();
-            $table->string('caption');
-            $table->string('info')->nullable();
-            $table->foreignId('user_id')
+            $table->string('org_name');
+            $table->string('name');
+            $table->foreignId('article_id')
                 ->constrained()
                 ->cascadeOnUpdate()
                 ->cascadeOnDelete();
@@ -32,6 +32,6 @@ class CreateArticlesTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('articles');
+        Schema::dropIfExists('attachments');
     }
 }
