@@ -2,7 +2,6 @@
 @section('title', '新規登録')
 @section('content')
 <div class="col-8 col-offset-2 mx-auto">
-    <h1>新規登録</h1>
     @include('partial.flash')
     @include('partial.errors')
     <form action="{{ route('articles.store') }}" method="post" enctype="multipart/form-data">

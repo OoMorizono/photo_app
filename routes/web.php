@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use \App\Http\Controllers\ArticleController;
 use App\Models\Article;
 
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -17,4 +18,18 @@ use App\Models\Article;
 
 Route::get('/', [ArticleController::class, 'index']);
 
-Route::resource('articles', ArticleController::class);
+
+Route::resource('articles', ArticleController::class)
+    ->middleware(['auth'])
+    ->only(['create', 'store', 'edit', 'update', 'destroy']);
+//  ->except(['index', 'show']);  // こちらでも可
+
+Route::resource('articles', ArticleController::class)
+    ->only(['index', 'show']);
+//  ->except(['create', 'store', 'edit', 'update', 'destroy']);  // こちらでも可
+
+Route::get('/dashboard', function () {
+    return view('dashboard');
+})->middleware(['auth'])->name('dashboard');
+
+require __DIR__ . '/auth.php';

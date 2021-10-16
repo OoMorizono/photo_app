@@ -1,7 +1,6 @@
 @extends('layouts.main')
 @section('title', '編集画面')
 @section('content')
-<h1>詳細編集</h1>
 @include('partial.flash')
 @include('partial.errors')
 <section>

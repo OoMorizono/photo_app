@@ -1,7 +1,6 @@
 @extends('layouts.main')
 @section('title', '詳細画面')
 @section('content')
-<h1>画像詳細</h1>
 @include('partial.flash')
 @include('partial.errors')
 <section>
