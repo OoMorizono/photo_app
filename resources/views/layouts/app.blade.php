@@ -11,7 +11,7 @@
 
 <body>
     <div class="container"></div>
-    @yield('container')
+    @yield('content')
     </div>
     <script src="{{ asset('js/app.js') }}" defer></script>
 </body>
