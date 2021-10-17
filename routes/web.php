@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use \App\Http\Controllers\ArticleController;
 use App\Models\Article;
+use App\Http\Controllers\Auth\OAuthController;
+
 
 
 /*
@@ -16,7 +18,8 @@ use App\Models\Article;
 |
 */
 
-Route::get('/', [ArticleController::class, 'index']);
+Route::get('/', [ArticleController::class, 'index'])
+    ->name('root');
 
 
 Route::resource('articles', ArticleController::class)
@@ -33,3 +36,15 @@ Route::get('/dashboard', function () {
 })->middleware(['auth'])->name('dashboard');
 
 require __DIR__ . '/auth.php';
+
+
+// authから始まるルーティングに認証前にアクセスがあった場合
+Route::prefix('auth')->middleware('guest')->group(function () {
+    // auth/githubにアクセスがあった場合はOAuthControllerのredirectToProviderアクションへルーティング
+    Route::get('/github', [OAuthController::class, 'redirectToProvider'])
+        ->name('redirectToProvider');
+
+    // auth/github/callbackにアクセスがあった場合はOAuthControllerのoauthCallbackアクションへルーティング
+    Route::get('/github/callback', [OAuthController::class, 'oauthCallback'])
+        ->name('oauthCallback');
+});

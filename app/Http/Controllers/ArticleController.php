@@ -13,6 +13,12 @@ use Illuminate\Support\Facades\DB;
 
 class ArticleController extends Controller
 {
+    public function __construct()
+    {
+        // アクションに合わせたpolicyのメソッドで認可されていないユーザーはエラーを投げる
+        $this->authorizeResource(Article::class, 'article');
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -43,7 +49,7 @@ class ArticleController extends Controller
     public function store(ArticleRequest $request)
     {
         $article = new Article($request->all());
-        $article->user_id = 1;
+        $article->user_id = $request->user()->id;
         $file = $request->file('file');
 
         DB::beginTransaction();
@@ -129,14 +135,14 @@ class ArticleController extends Controller
      */
     public function destroy(Article $article)
     {
+        $this->authorize('delete', $article);
         $path = $article->image_path;
-        
         DB::beginTransaction();
         try {
-            
+
             $article->delete();
             $article->attachment()->delete();
-            if(!Storage::delete($path)){
+            if (!Storage::delete($path)) {
                 throw new Exception('ファイルの削除に失敗しました');
             }
 
