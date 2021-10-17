@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Storage;
 class Article extends Model
 {
     use HasFactory;
-    
+
     protected $fillable = [
         'caption',
         'info',
@@ -27,6 +27,9 @@ class Article extends Model
 
     public function getImageUrlAttribute()
     {
+        if (config('filesystems.default') == 'gcs') {
+            return Storage::temporaryUrl($this->image_path, now()->addMinutes(5));
+        }
         return Storage::url($this->image_path);
     }
 }
