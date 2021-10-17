@@ -30,20 +30,15 @@ class OAuthController extends Controller
                 ['oauth' => '予期せぬエラーが発生しました']
             );
         }
-        // dd($socialUser);
-        $user = User::firstOrNew(['email' => $socialUser->getEmail()]);
-// dd($user);
+
+        $identityProvider = IdentityProvider::firstOrNew(['id' => $socialUser->getId(), 'name' => $provider]);
+
         // 新規ユーザーの処理
-        if ($user->exists) {
-            if ($user->identityProvider->name != $provider) {
-                return redirect('/login')
-                    ->withErrors(['oauth_error'=> 'このメールアドレスはすでに別の認証で使われてます']);
-            }
+        if ($identityProvider->exists) {
+            $user = $identityProvider->user;
         } else {
-            $user->name = $socialUser->getNickname ?? $socialUser->name;
-            $identityProvider = new IdentityProvider([
-                'id' => $socialUser->getId(),
-                'name' => $provider
+            $user = new User([
+                'name' => $socialUser->getNickname() ?? $socialUser->name,
             ]);
 
             DB::beginTransaction();
@@ -58,6 +53,7 @@ class OAuthController extends Controller
                     ->withErrors(['transaction_error' => '保存に失敗しました']);
             }
         }
+
         Auth::login($user);
 
         return redirect(RouteServiceProvider::HOME);
