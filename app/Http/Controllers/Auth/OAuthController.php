@@ -15,15 +15,15 @@ use Illuminate\Routing\Route;
 
 class OAuthController extends Controller
 {
-    public function redirectToProvider()
+    public function redirectToProvider($provider)
     {
-        return Socialite::driver('github')->redirect();
+        return Socialite::driver($provider)->redirect();
     }
 
-    public function oauthCallback()
+    public function oauthCallback($provider)
     {
         try {
-            $socialUser = Socialite::with('github')->user();
+            $socialUser = Socialite::with($provider)->user();
         } catch (\Throwable $th) {
             // dd($th);
             return redirect('/login')->withErrors(
@@ -32,13 +32,18 @@ class OAuthController extends Controller
         }
         // dd($socialUser);
         $user = User::firstOrNew(['email' => $socialUser->getEmail()]);
-
+// dd($user);
         // 新規ユーザーの処理
-        if (!$user->exists) {
+        if ($user->exists) {
+            if ($user->identityProvider->name != $provider) {
+                return redirect('/login')
+                    ->withErrors(['oauth_error'=> 'このメールアドレスはすでに別の認証で使われてます']);
+            }
+        } else {
             $user->name = $socialUser->getNickname ?? $socialUser->name;
             $identityProvider = new IdentityProvider([
                 'id' => $socialUser->getId(),
-                'name' => 'github'
+                'name' => $provider
             ]);
 
             DB::beginTransaction();
@@ -53,7 +58,6 @@ class OAuthController extends Controller
                     ->withErrors(['transaction_error' => '保存に失敗しました']);
             }
         }
-
         Auth::login($user);
 
         return redirect(RouteServiceProvider::HOME);
